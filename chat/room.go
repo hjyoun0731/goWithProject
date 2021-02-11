@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/hjyoun0731/goWithProject/trace"
 )
 
 type room struct {
@@ -20,6 +21,9 @@ type room struct {
 
 	// clients는 현재 채팅방에 있는 모든 클라이언트를 보유한다
 	clients map[*client]bool
+
+	// tracer는 방 안에서 활동의 추적 정보를 수신한다.
+	tracer trace.Tracer
 }
 
 func newRoom() *room {
@@ -35,13 +39,18 @@ func (r *room) run() {
 	for {
 		select {
 		case client := <-r.join:
+			// 입장
 			r.clients[client] = true
 		case client := <-r.leave:
+			// 퇴장
 			delete(r.clients, client)
 			close(client.send)
 		case msg := <-r.forward:
+			r.tracer.Trace("Message received: ", string(msg))
+			// 모든 클라이언트에게 메시지 전달
 			for client := range r.clients {
 				client.send <- msg
+				r.tracer.Trace(" -- sent to client")
 			}
 		}
 	}
