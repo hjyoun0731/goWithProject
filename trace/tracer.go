@@ -24,3 +24,12 @@ func (t *tracer) Trace(a ...interface{}) {
 func New(w io.Writer) Tracer {
 	return &tracer{out: w}
 }
+
+type nilTracer struct{}
+
+func (t *nilTracer) Trace(a ...interface{}) {}
+
+// Off 는 Trace에 대한 호출을 무시할 Tracer를 생성한다
+func Off() Tracer {
+	return &nilTracer{}
+}
