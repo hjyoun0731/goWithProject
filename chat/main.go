@@ -2,6 +2,10 @@ package main
 
 import (
 	"flag"
+	"github.com/stretchr/gomniauth"
+	"github.com/stretchr/gomniauth/providers/facebook"
+	"github.com/stretchr/gomniauth/providers/github"
+	"github.com/stretchr/gomniauth/providers/google"
 	"log"
 	"net/http"
 	"os"
@@ -28,6 +32,21 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func main() {
 	var addr = flag.String("addr", ":8080", "The addr of the application.")
 	flag.Parse()
+
+	// gomniauth 설정
+	gomniauth.SetSecurityKey("PUT YOUR AUTH KEY HERE")
+	gomniauth.WithProviders(
+		facebook.New("key",
+			"secret",
+			"http://localhost:8080/auth/callback/facebook"),
+		github.New("key",
+			"secret",
+			"http://localhost:8080/auth/callback/github"),
+		google.New("793070927077-v3regbn08vjaqvm50tppnt3k7o1upnpv.apps.googleusercontent.com",
+			"Fi5CMIH7jw9HDJ5_EjjaeEtd",
+			"http://localhost:8080/auth/callback/google"),
+		)
+
 	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
 
