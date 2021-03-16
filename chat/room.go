@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/stretchr/objx"
 	"log"
 	"net/http"
 
@@ -11,7 +12,7 @@ import (
 type room struct {
 	// forward는 수신 메시지를 보관하는 채널이며
 	// 수신한 메시지는 다른 클라이언트로 전달돼야 한다
-	forward chan []byte
+	forward chan *message
 
 	// join은 방에 들어오려는 클라이언트를 위한 채널이다
 	join chan *client
@@ -28,7 +29,7 @@ type room struct {
 
 func newRoom() *room {
 	return &room{
-		forward: make(chan []byte),
+		forward: make(chan *message),
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
@@ -47,7 +48,7 @@ func (r *room) run() {
 			delete(r.clients, client)
 			close(client.send)
 		case msg := <-r.forward:
-			r.tracer.Trace("Message received: ", string(msg))
+			r.tracer.Trace("Message received: ", msg.Message)
 			// 모든 클라이언트에게 메시지 전달
 			for client := range r.clients {
 				client.send <- msg
@@ -70,10 +71,16 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		log.Fatal("ServeHTTP:", err)
 		return
 	}
+	authCookie, err := req.Cookie("auth")
+	if err != nil {
+		log.Fatal("Failed to get auth cookie:", err)
+		return
+	}
 	client := &client{
 		socket: socket,
-		send:   make(chan []byte, messageBufferSize),
+		send:   make(chan *message, messageBufferSize),
 		room:   r,
+		userData: objx.MustFromBase64(authCookie.Value),
 	}
 	r.join <- client
 	defer func() { r.leave <- client }()
