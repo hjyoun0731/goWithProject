@@ -1,9 +1,11 @@
 package main
 
 import (
+	"crypto/md5"
 	"fmt"
 	"github.com/stretchr/gomniauth"
 	"github.com/stretchr/objx"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -74,7 +76,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Error when trying to get user from %s: %s", provider, err), http.StatusInternalServerError)
 			return
 		}
+		m := md5.New()
+		io.WriteString(m, strings.ToLower(user.Email()))
+		userId := fmt.Sprintf("%x", m.Sum(nil))
 		authCookieValue := objx.New(map[string]interface{}{
+			"userid":	userId,
 			"name":       user.Name(),
 			"avatar_url": user.AvatarURL(),
 			"email":      user.Email(),
