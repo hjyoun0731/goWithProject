@@ -17,6 +17,13 @@ import (
 	"github.com/hjyoun0731/goWithProject/trace"
 )
 
+// Avatar 구현을 활성화한다
+var avatars Avatar = TryAvatars{
+	UseFileSystemAvatar,
+	UseAuthAvatar,
+	UseGravatar,
+}
+
 type templateHandler struct {
 	once     sync.Once
 	filename string
@@ -30,8 +37,8 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
 		"Host": r.Host,
 	}
-	authCookie, err:= r.Cookie("auth")
-	if err ==nil {
+	authCookie, err := r.Cookie("auth")
+	if err == nil {
 		data["UserData"] = objx.MustFromBase64(authCookie.Value)
 	}
 	t.templ.Execute(w, data)
@@ -53,9 +60,9 @@ func main() {
 		google.New("793070927077-v3regbn08vjaqvm50tppnt3k7o1upnpv.apps.googleusercontent.com",
 			"Fi5CMIH7jw9HDJ5_EjjaeEtd",
 			"http://localhost:8080/auth/callback/google"),
-		)
+	)
 
-	r := newRoom(useFileSystemAvatar)
+	r := newRoom()
 	r.tracer = trace.New(os.Stdout)
 
 	http.Handle("/chat", MustAuth(&templateHandler{filename: "chat.html"}))
@@ -66,9 +73,9 @@ func main() {
 	// 	http.FileServer(http.Dir("/path/to/assets/"))))
 	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{
-			Name: "auth",
-			Value: "",
-			Path: "/",
+			Name:   "auth",
+			Value:  "",
+			Path:   "/",
 			MaxAge: -1,
 		})
 		w.Header().Set("Location", "/chat")
