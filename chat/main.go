@@ -41,7 +41,7 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		data["UserData"] = objx.MustFromBase64(authCookie.Value)
 	}
-	t.templ.Execute(w, data)
+	_ = t.templ.Execute(w, data)
 }
 
 func main() {
