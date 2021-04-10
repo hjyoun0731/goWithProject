@@ -2,4 +2,12 @@
 go.mod
 go.sum
 .idea/
+*.dat
+
+domainfinder/domainfinder
+domainfinder/lib/available
+domainfinder/lib/coolify
+domainfinder/lib/domainify
+domainfinder/lib/sprinkle
+domainfinder/lib/synonyms
 
