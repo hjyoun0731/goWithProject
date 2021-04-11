@@ -4,6 +4,8 @@ go.sum
 .idea/
 *.dat
 
+exportTwitterKey
+
 domainfinder/domainfinder
 domainfinder/lib/available
 domainfinder/lib/coolify
